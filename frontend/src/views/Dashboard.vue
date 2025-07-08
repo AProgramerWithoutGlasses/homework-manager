@@ -33,7 +33,7 @@
             <div class="header-right">
               <el-dropdown @command="handleCommand">
                 <span class="user-info">
-                  {{ authStore.user?.name || '用户' }}
+                  {{ authStore.teacher?.name || '用户' }}
                   <el-icon><ArrowDown /></el-icon>
                 </span>
                 <template #dropdown>
@@ -90,14 +90,25 @@ export default {
 </script>
 
 <style scoped>
-.dashboard {
+.dashboard,
+.el-container {
   height: 100vh;
+  min-height: 100vh;
+}
+
+.el-aside {
+  height: 100vh;
+  background: #304156;
+  padding: 0;
+  border: none;
 }
 
 .sidebar {
   height: 100%;
   background: #304156;
   color: white;
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {

@@ -11,18 +11,10 @@
     <el-card>
       <el-table :data="students" v-loading="loading" style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="username" label="用户名" />
         <el-table-column prop="name" label="姓名" />
-        <el-table-column prop="email" label="邮箱" />
-        <el-table-column prop="phone" label="电话" />
         <el-table-column prop="class" label="班级" />
         <el-table-column prop="grade" label="年级" />
-        <el-table-column prop="status" label="状态">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 'active' ? 'success' : 'danger'">
-              {{ row.status === 'active' ? '活跃' : '非活跃' }}
-            </el-tag>
-          </template>
-        </el-table-column>
         <el-table-column label="操作" width="200">
           <template #default="{ row }">
             <el-button size="small" @click="editStudent(row)">编辑</el-button>
@@ -44,26 +36,20 @@
         :rules="rules"
         label-width="80px"
       >
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="studentForm.username" />
+        </el-form-item>
+        <el-form-item label="密码" prop="password" v-if="!editingStudent">
+          <el-input v-model="studentForm.password" type="password" show-password />
+        </el-form-item>
         <el-form-item label="姓名" prop="name">
           <el-input v-model="studentForm.name" />
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="studentForm.email" />
-        </el-form-item>
-        <el-form-item label="电话" prop="phone">
-          <el-input v-model="studentForm.phone" />
         </el-form-item>
         <el-form-item label="班级" prop="class">
           <el-input v-model="studentForm.class" />
         </el-form-item>
         <el-form-item label="年级" prop="grade">
           <el-input v-model="studentForm.grade" />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="studentForm.status" style="width: 100%">
-            <el-option label="活跃" value="active" />
-            <el-option label="非活跃" value="inactive" />
-          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -90,27 +76,27 @@ export default {
     const showAddDialog = ref(false)
     const editingStudent = ref(null)
     const studentForm = reactive({
+      username: '',
+      password: '',
       name: '',
-      email: '',
-      phone: '',
       class: '',
-      grade: '',
-      status: 'active'
+      grade: ''
     })
 
     const rules = {
-      name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-      email: [
-        { required: true, message: '请输入邮箱', trigger: 'blur' },
-        { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
-      ]
+      username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+      password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+      name: [{ required: true, message: '请输入姓名', trigger: 'blur' }]
     }
 
     const loadStudents = async () => {
       loading.value = true
       try {
         const response = await axios.get('/api/students')
-        students.value = response.data.students
+        students.value = (response.data.data.students || []).map(s => ({
+          ...s,
+          id: s.ID
+        }))
       } catch (error) {
         ElMessage.error('获取学生列表失败')
       } finally {
@@ -120,19 +106,23 @@ export default {
 
     const resetForm = () => {
       Object.assign(studentForm, {
+        username: '',
+        password: '',
         name: '',
-        email: '',
-        phone: '',
         class: '',
-        grade: '',
-        status: 'active'
+        grade: ''
       })
       editingStudent.value = null
     }
 
     const editStudent = (student) => {
       editingStudent.value = student
-      Object.assign(studentForm, student)
+      Object.assign(studentForm, {
+        username: student.username,
+        name: student.name,
+        class: student.class,
+        grade: student.grade
+      })
       showAddDialog.value = true
     }
 

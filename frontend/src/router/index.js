@@ -41,16 +41,27 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
-  } else if (to.path === '/login' && authStore.isAuthenticated) {
-    next('/dashboard')
-  } else {
-    next()
+  // 初始化认证状态
+  authStore.initAuth()
+  
+  // 检查是否需要认证
+  if (to.meta.requiresAuth) {
+    if (!authStore.isAuthenticated) {
+      next('/login')
+      return
+    }
   }
+  
+  // 如果已登录且访问登录页，重定向到仪表板
+  if (to.path === '/login' && authStore.isAuthenticated) {
+    next('/dashboard')
+    return
+  }
+  
+  next()
 })
 
 export default router 

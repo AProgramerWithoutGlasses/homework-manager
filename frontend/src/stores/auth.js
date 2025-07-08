@@ -4,24 +4,30 @@ import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('token') || '')
-  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
+  let teacherRaw = localStorage.getItem('teacher')
+  if (teacherRaw === null || teacherRaw === undefined || teacherRaw === 'undefined') {
+    teacherRaw = null
+  }
+  const teacher = ref(teacherRaw ? JSON.parse(teacherRaw) : null)
 
   const isAuthenticated = computed(() => !!token.value)
 
-  const login = async (username, password) => {
+  const login = async (telephone, password) => {
     try {
-      const response = await axios.post('/api/login', {
-        username,
+      const response = await axios.post('/backend/login', {
+        telephone,
         password
       })
       
-      const { token: newToken, user: userData } = response.data
+      const { token: newToken, teacher: teacherData } = response.data
       
+      // 更新状态
       token.value = newToken
-      user.value = userData
+      teacher.value = teacherData
       
+      // 保存到localStorage
       localStorage.setItem('token', newToken)
-      localStorage.setItem('user', JSON.stringify(userData))
+      localStorage.setItem('teacher', JSON.stringify(teacherData))
       
       // 设置axios默认headers
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
@@ -37,21 +43,34 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = () => {
     token.value = ''
-    user.value = null
+    teacher.value = null
     localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    localStorage.removeItem('teacher')
     delete axios.defaults.headers.common['Authorization']
   }
 
   const initAuth = () => {
-    if (token.value) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+    // 从localStorage重新读取状态
+    const storedToken = localStorage.getItem('token')
+    const storedTeacher = localStorage.getItem('teacher')
+    
+    if (storedToken) {
+      token.value = storedToken
+      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
+    }
+    
+    if (storedTeacher && storedTeacher !== 'undefined') {
+      try {
+        teacher.value = JSON.parse(storedTeacher)
+      } catch (e) {
+        teacher.value = null
+      }
     }
   }
 
   return {
     token,
-    user,
+    teacher,
     isAuthenticated,
     login,
     logout,

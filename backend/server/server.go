@@ -22,8 +22,27 @@ func initRouter() *gin.Engine {
 	backend := r.Group("/backend")
 	backend.POST("/login", login)
 
-	// 前台
-	//frontend := r.Group("/frontend")
+	// 前台API
+	frontend := r.Group("/api")
+	{
+		// 学生管理接口
+		frontend.GET("/students", getStudents)
+		frontend.POST("/students", createStudent)
+		frontend.PUT("/students/:id", updateStudent)
+		frontend.DELETE("/students/:id", deleteStudent)
+
+		// 任务管理接口
+		frontend.GET("/tasks", getTasks)
+		frontend.POST("/tasks", createTask)
+		frontend.PUT("/tasks/:id", updateTask)
+		frontend.PUT("/tasks/:id/status", updateTaskStatus)
+		frontend.DELETE("/tasks/:id", deleteTask)
+
+		// 任务学生完成状态接口
+		frontend.GET("/tasks/:id/students", getTaskStudents)
+		frontend.PUT("/tasks/:id/students/:studentId/status", updateStudentTaskStatus)
+		frontend.GET("/tasks/:id/completion-stats", getTaskCompletionStats)
+	}
 
 	return r
 }

@@ -13,10 +13,10 @@
         class="login-form"
         @submit.prevent="handleLogin"
       >
-        <el-form-item prop="username">
+        <el-form-item prop="telephone">
           <el-input
-            v-model="loginData.username"
-            placeholder="用户名"
+            v-model="loginData.telephone"
+            placeholder="电话号码"
             prefix-icon="User"
             size="large"
           />
@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import { ref, reactive } from 'vue'
+import { ref, reactive, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { ElMessage } from 'element-plus'
@@ -70,13 +70,13 @@ export default {
     const loading = ref(false)
     
     const loginData = reactive({
-      username: '',
+      telephone: '',
       password: ''
     })
     
     const rules = {
-      username: [
-        { required: true, message: '请输入用户名', trigger: 'blur' }
+      telephone: [
+        { required: true, message: '请输入电话号码', trigger: 'blur' }
       ],
       password: [
         { required: true, message: '请输入密码', trigger: 'blur' }
@@ -90,11 +90,14 @@ export default {
         await loginForm.value.validate()
         loading.value = true
         
-        const result = await authStore.login(loginData.username, loginData.password)
+        const result = await authStore.login(loginData.telephone, loginData.password)
         
         if (result.success) {
           ElMessage.success('登录成功')
-          router.push('/dashboard')
+          await nextTick()
+          setTimeout(() => {
+            router.push('/dashboard')
+          }, 100)
         } else {
           ElMessage.error(result.error)
         }
